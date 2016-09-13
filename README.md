@@ -28,6 +28,11 @@ Simple function to help with consistent responses when using express.
 
 ## Options
 
+    {
+      sanitizer: json => json,
+      fieldsToOmit: null
+    }
+
 ### sanitizer
 
 You can initialise promise-to-respond with a sanitizer function that will be called in the case of a 200 response to transform the response body as required.
@@ -37,3 +42,12 @@ You can initialise promise-to-respond with a sanitizer function that will be cal
         //TODO convert json to something else and return the result
       }
     });
+
+### fieldsToOmit
+
+You can specify fields to be omitted from the response. This applies the omit function to all array items if the response is an array
+
+    const respond = require('promise-to-respond')({
+      fieldsToOmit: ['_id', '__v']
+    });
+ 

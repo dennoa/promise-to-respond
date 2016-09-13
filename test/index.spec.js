@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const respond = require('../lib');
 const expect = require('chai').expect;
 const sinon = require('sinon');
@@ -64,6 +65,79 @@ describe('respond', ()=> {
       expect(resStatus.calledWith(500)).to.be.true;
       let msg = resJson.firstCall.args[0];
       expect(msg.error).to.equal(errors);
+      done();
+    });
+  });
+
+  it('should allow a custom sanitizer to be specified', done => {
+    respondInstance = respond({
+      sanitizer: json => _.omit(json, '_id')
+    });
+    let json = { _id: 'sdfdsf', result: 'my result' };
+    respondInstance(res, new Promise(resolve => resolve(json))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      expect(result.result).to.equal(json.result);
+      expect(typeof result._id).to.equal('undefined');
+      done();
+    });
+  });
+
+  it('should allow fieldsToOmit to specify a single field', done => {
+    respondInstance = respond({
+      fieldsToOmit: '_id'
+    });
+    let json = { _id: 'sdfdsf', result: 'my result' };
+    respondInstance(res, new Promise(resolve => resolve(json))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      expect(result.result).to.equal(json.result);
+      expect(typeof result._id).to.equal('undefined');
+      done();
+    });
+  });
+
+  it('should allow fieldsToOmit to specify multiple fields', done => {
+    respondInstance = respond({
+      fieldsToOmit: ['_id', '__v']
+    });
+    let json = { _id: 'sdfdsf', __v: 0, result: 'my result' };
+    respondInstance(res, new Promise(resolve => resolve(json))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      expect(result.result).to.equal(json.result);
+      expect(typeof result._id).to.equal('undefined');
+      expect(typeof result.__v).to.equal('undefined');
+      done();
+    });
+  });
+
+  it('should apply fieldsToOmit to an array of objects', done => {
+    respondInstance = respond({
+      fieldsToOmit: ['_id', '__v']
+    });
+    let docs = [{ _id: 'sdfdsf', __v: 0, result: 'my result' },{ _id: 'sdfdsf', __v: 0, result: 'my other result' }];
+    respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      docs.forEach((json, idx) => {
+        expect(result[idx].result).to.equal(json.result);
+        expect(typeof result[idx]._id).to.equal('undefined');
+        expect(typeof result[idx].__v).to.equal('undefined');
+      });
+      done();
+    });
+  });
+
+  it('should apply fieldsToOmit before a custom sanitizer', done => {
+    respondInstance = respond({
+      sanitizer: docs => _.filter(docs, doc => !!doc._id),
+      fieldsToOmit: ['_id', '__v']
+    });
+    let docs = [{ _id: 'sdfdsf', __v: 0, result: 'my result' },{ _id: 'sdfdsf', __v: 0, result: 'my other result' }];
+    respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      expect(resJson.calledWith([])).to.equal(true);
       done();
     });
   });
