@@ -1,0 +1,30 @@
+{
+  "name": "promise-to-respond",
+  "version": "1.0.0",
+  "description": "Simple function that converts promise results to an express response",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dennoa/promise-to-respond.git"
+  },
+  "author": "dennoa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dennoa/promise-to-respond/issues"
+  },
+  "homepage": "https://github.com/dennoa/promise-to-respond#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2",
+    "sinon": "^1.17.5"
+  },
+  "dependencies": {
+    "lodash": "^4.15.0"
+  }
+}
