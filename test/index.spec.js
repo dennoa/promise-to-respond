@@ -129,6 +129,23 @@ describe('respond', ()=> {
     });
   });
 
+  it('should apply fieldsToOmit to an embedded array of objects', done => {
+    respondInstance = respond({
+      fieldsToOmit: ['_id', '__v']
+    });
+    let docs = { myarr: [{ _id: 'sdfdsf', __v: 0, result: 'my result' },{ _id: 'sdfdsf', __v: 0, result: 'my other result' }] };
+    respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      docs.myarr.forEach((json, idx) => {
+        expect(result.myarr[idx].result).to.equal(json.result);
+        expect(typeof result.myarr[idx]._id).to.equal('undefined');
+        expect(typeof result.myarr[idx].__v).to.equal('undefined');
+      });
+      done();
+    });
+  });
+
   it('should apply fieldsToOmit before a custom sanitizer', done => {
     respondInstance = respond({
       sanitizer: docs => _.filter(docs, doc => !!doc._id),
