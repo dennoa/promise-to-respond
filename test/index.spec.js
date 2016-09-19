@@ -131,7 +131,7 @@ describe('respond', ()=> {
 
   it('should apply fieldsToOmit to an embedded array of objects', done => {
     respondInstance = respond({
-      fieldsToOmit: ['_id', '__v']
+      fieldsToOmit: ['myarr._id', 'myarr.__v']
     });
     let docs = { myarr: [{ _id: 'sdfdsf', __v: 0, result: 'my result' },{ _id: 'sdfdsf', __v: 0, result: 'my other result' }] };
     respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
@@ -142,6 +142,22 @@ describe('respond', ()=> {
         expect(typeof result.myarr[idx]._id).to.equal('undefined');
         expect(typeof result.myarr[idx].__v).to.equal('undefined');
       });
+      done();
+    });
+  });
+
+  it('should apply fieldToOmit to deeply nested objects', done => {
+    respondInstance = respond({
+      fieldsToOmit: ['myarr.nested.arr.ignore']
+    });
+    let docs = { myarr: [{ someDate: new Date(), nested: { arr: [{ ignore: 'me', keep: true }]}, result: 'my result' }] };
+    respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      expect(result.myarr[0].result).to.equal(docs.myarr[0].result);
+      expect(result.myarr[0].someDate.getTime()).to.equal(docs.myarr[0].someDate.getTime());
+      expect(typeof result.myarr[0].nested.arr[0].ignore).to.equal('undefined');
+      expect(result.myarr[0].nested.arr[0].keep).to.equal(true);
       done();
     });
   });
