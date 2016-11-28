@@ -162,6 +162,19 @@ describe('respond', ()=> {
     });
   });
 
+  it('should apply fieldToOmit to deeply nested objects with null values', done => {
+    respondInstance = respond({
+      fieldsToOmit: ['myarr.nested.arr.ignore']
+    });
+    let docs = { myarr: [{ someDate: new Date(), nested: { arr: null }, result: 'my result' }] };
+    respondInstance(res, new Promise(resolve => resolve(docs))).then(()=> {
+      expect(resStatus.calledWith(200)).to.be.true;
+      let result = resJson.firstCall.args[0];
+      expect(result.myarr[0].nested.arr).to.equal(null);
+      done();
+    });
+  });
+
   it('should apply fieldsToOmit before a custom sanitizer', done => {
     respondInstance = respond({
       sanitizer: docs => _.filter(docs, doc => !!doc._id),
