@@ -12,36 +12,37 @@ Simple function to help with consistent responses when using express.
     const respond = require('promise-to-respond')();
     const router = require('express').Router();
 
-    router.get('/:key', (req, res) => {
-      respond(res, new Promise((resolve, reject) => {
-        resolve({ some: 'data' });
-      }));
-    });
+    router.get('/:key', (req, res) =>
+      respond(res, Promise.resolve({ some: 'data' })));
 
 ## Rules
 
-* A resolved promise with a truthy result responds with 200
-* A resolved promise with a falsy result responds with 204
+* A resolved promise with a defined or null result responds with 200
+* A resolved promise with an undefined result responds with 204
 * A rejected promise with an array responds with 400
-* A rejected promise with any other truthy result responds with 500 a body like this: { error: result }
-* A rejected promise with a falsy result responds with 404
+* A rejected promise with an undefined result responds with 404
+* A rejected promise with anything else responds with 500 and a body like this: { error }
 
 ## Options
 
     {
-      sanitizer: json => json,
+      toJSON: result => {
+        return (typeof (result || {}).toJSON === 'function') ? result.toJSON() : result;
+      },
       fieldsToOmit: null
     }
 
-### sanitizer
+### toJSON
 
-You can initialise promise-to-respond with a sanitizer function that will be called in the case of a 200 response to transform the response body as required.
+You can specify a toJSON function that will be called in the case of any response (that is not undefined) to transform the response body as required. It will be called for success responses (200) as well as error responses (400, 500). It can return a Promise or JSON.
 
     const respond = require('promise-to-respond')({
-      sanitizer: json => {
-        //TODO convert json to something else and return the result
-      }
+      toJSON: obj => new Promise((resolve, reject) => {
+        //TODO convert obj to something else and return the result
+      }),
     });
+
+The default implementation checks for a toJSON function on the object and uses that if it exists. 
 
 ### fieldsToOmit
 
@@ -50,4 +51,3 @@ You can specify fields to be omitted from the response. This applies the omit fu
     const respond = require('promise-to-respond')({
       fieldsToOmit: ['_id', '__v']
     });
- 
