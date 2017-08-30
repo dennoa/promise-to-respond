@@ -1,6 +1,6 @@
 {
   "name": "promise-to-respond",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Simple function that converts promise results to an express response",
   "main": "index.js",
   "engines": {
